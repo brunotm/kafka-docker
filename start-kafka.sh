@@ -12,17 +12,53 @@ configure () {
     if egrep -q "(^|^#)${2}=" ${1}; then
         sed -r -i "s@(^|^#)(${2})=(.*)@\2=${3}@g" ${1}
     else
-        echo "${2}=${3}" >> ${1}
+        echo -e "\n${2}=${3}" >> ${1}
     fi
   fi
 }
 
 # Parse kafka options from environment variables.
-# Options must be specified as in server.properties,
-# prefixing each option with "kafka.", example: kafka.zookeeper.connect=localhost:2181
+# Options must be specified as in server.properties, capitalizing, replacing "."
+# with "_" and prefixing each configuration option with "KAFKA_".
+# zookeeper.connect=localhost:2181 becomes KAFKA_ZOOKEEPER.CONNECT=zookeeper:2181
+blacklist="KAFKA_CONFIG_FILE KAFKA_VERSION KAFKA_RELEASE KAFKA_URL KAFKA_HEAP_OPTS KAFKA_JMX_PORT"
 while IFS='=' read -r key value; do
+  if [[ ${blacklist} =~ ${key} ]]; then
+    continue
+  fi
+
+  key=$(echo $key|tr "[:upper:]" "[:lower:]"|tr "_" ".")
   configure ${KAFKA_CONFIG_FILE} $key $value
-done < <(env|grep ^kafka\.*|cut -d. -f2-)
+done < <(env|grep ^KAFKA_*|cut -d_ -f2-)
+
+
+# Configure and start ZooKeeper if enabled
+if [[ "$ZOOKEEPER_ENABLE" == "true" ]]; then
+  mkdir -p ${ZOOKEEPER_DATA_DIR}
+
+  if [[ ! -f "$ZOOKEEPER_DATA_DIR/myid" ]]; then
+    echo "${ZOOKEEPER_NODE_ID}" > "$ZOOKEEPER_DATA_DIR/myid"
+  fi
+
+  configure ${ZOOKEEPER_CONFIG_FILE} "dataDir" "${ZOOKEEPER_DATA_DIR}"
+  configure ${ZOOKEEPER_CONFIG_FILE} "dataLogDir" "${ZOOKEEPER_DATA_LOG_DIR}"
+  configure ${ZOOKEEPER_CONFIG_FILE} "clientPort" "${ZOOKEEPER_CLIENT_PORT}"
+  configure ${ZOOKEEPER_CONFIG_FILE} "tickTime" "${ZOOKEEPER_TICK_TIME}"
+  configure ${ZOOKEEPER_CONFIG_FILE} "initLimit" "${ZOOKEEPER_INIT_LIMIT}"
+  configure ${ZOOKEEPER_CONFIG_FILE} "syncLimit" "${ZOOKEEPER_SYNC_LIMIT}"
+  configure ${ZOOKEEPER_CONFIG_FILE} "maxClientCnxns" "${ZOOKEEPER_MAX_CLIENT_CONN}"
+  configure ${ZOOKEEPER_CONFIG_FILE} "autopurge.snapRetainCount" "${ZOOKEEPER_AUTO_PURGE_SNAP_RETAIN_COUNT}"
+  configure ${ZOOKEEPER_CONFIG_FILE} "autopurge.purgeInterval" "${ZOOKEEPER_AUTO_PURGE_INTERVAL}"
+
+  for server in $ZOOKEEPER_SERVERS; do
+        echo "$server" >> "$ZOOKEEPER_CONFIG_FILE"
+    done
+
+  JMX_PORT=${ZOOKEEPER_JMX_PORT} /kafka/bin/zookeeper-server-start.sh -daemon ${ZOOKEEPER_CONFIG_FILE}
+
+fi
+
+
 
 # Setup SSL and TLS authentication
 if [[ -n "${SSL_CA_CERT}" && -n "${SSL_CA_KEY}" ]]; then
@@ -121,4 +157,10 @@ if [[ -n "${SSL_CA_CERT}" && -n "${SSL_CA_KEY}" ]]; then
 
 fi
 
+# Stop ZooKeeper node if enabled
+if [[ "$ZOOKEEPER_ENABLE" == "true" ]]; then
+  trap /kafka/bin/zookeeper-server-stop.sh SIGKILL SIGTERM SIGHUP SIGINT EXIT
+fi
+
+export JMX_PORT=${KAFKA_JMX_PORT}
 exec /kafka/bin/kafka-server-start.sh ${KAFKA_CONFIG_FILE}
