@@ -65,7 +65,7 @@ if [[ -n "${SSL_CA_CERT}" && -n "${SSL_CA_KEY}" ]]; then
 
   KAFKA_SECURITY_PATH=${KAFKA_SECURITY_PATH:-"/kafka/security"}
   KAFKA_KEYSTORE="${KAFKA_SECURITY_PATH}/${HOSTNAME}.keystore.jks"
-  KAFKA_KEYSTORE_PASSWORD="${KAFKA_KEYSTORE_PASSWORD:-$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)}"
+  KAFKA_KEYSTORE_PASSWORD="${KAFKA_KEYSTORE_PASSWORD:-"secure password"}"
   KAFKA_TRUSTSTORE="${KAFKA_SECURITY_PATH}/${HOSTNAME}.truststore.jks"
   KAFKA_SSL_CSR="${KAFKA_SECURITY_PATH}/${HOSTNAME}.csr"
   KAFKA_SSL_CRT="${KAFKA_SECURITY_PATH}/${HOSTNAME}.crt"

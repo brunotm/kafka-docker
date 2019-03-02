@@ -47,7 +47,7 @@ VOLUME /kafka/data
 EXPOSE 9092 9093 8004
 
 # ZooKeeper ports
-EXPOSE 2181 2888 3888 8004 8005
+EXPOSE 2181 2888 3888 8005
 
 ADD start-kafka.sh /kafka/bin/start-kafka.sh
 RUN chmod 700 /kafka/bin/start-kafka.sh
