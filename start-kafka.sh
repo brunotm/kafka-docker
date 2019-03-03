@@ -162,5 +162,4 @@ if [[ "$ZOOKEEPER_ENABLE" == "true" ]]; then
   trap /kafka/bin/zookeeper-server-stop.sh SIGKILL SIGTERM SIGHUP SIGINT EXIT
 fi
 
-export JMX_PORT=${KAFKA_JMX_PORT}
-exec /kafka/bin/kafka-server-start.sh ${KAFKA_CONFIG_FILE}
+exec env JMX_PORT=${KAFKA_JMX_PORT} /kafka/bin/kafka-server-start.sh ${KAFKA_CONFIG_FILE}
