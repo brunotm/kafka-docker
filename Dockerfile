@@ -8,7 +8,7 @@ ENV KAFKA_RELEASE="kafka_${SCALA_VERSION}-${KAFKA_VERSION}"
 ENV KAFKA_URL="https://archive.apache.org/dist/kafka/${KAFKA_VERSION}/${KAFKA_RELEASE}.tgz"
 
 # Default Kafka options
-ENV KAFKA_HEAP_OPTS="${JAVA_TOOL_OPTIONS} -Xmx1G -Xms1G" \
+ENV KAFKA_HEAP_OPTS="-Xmx1G -Xms1G" \
 	KAFKA_CONFIG_FILE=/kafka/config/server.properties \
 	KAFKA_BROKER_ID=-1 \
 	KAFKA_LOG_DIRS=/kafka/data/logs \

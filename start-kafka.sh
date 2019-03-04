@@ -17,6 +17,9 @@ configure () {
   fi
 }
 
+# Setup kafka KAFKA_HEAP_OPTS with existing JAVA_TOOL_OPTIONS and sensible defaults
+export KAFKA_HEAP_OPTS="${JAVA_TOOL_OPTIONS} ${KAFKA_HEAP_OPTS:-"-Xmx1G -Xms1G"}"
+
 # Parse kafka options from environment variables.
 # Options must be specified as in server.properties, capitalizing, replacing "."
 # with "_" and prefixing each configuration option with "KAFKA_".
