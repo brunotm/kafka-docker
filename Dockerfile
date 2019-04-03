@@ -2,7 +2,7 @@ FROM brunotm/correto-jre:8
 LABEL maintainer="brunotm@gmail.com"
 
 # Kafka and Scala versions
-ENV KAFKA_VERSION=2.1.1
+ENV KAFKA_VERSION=2.2.0
 ENV	SCALA_VERSION=2.12
 ENV KAFKA_RELEASE="kafka_${SCALA_VERSION}-${KAFKA_VERSION}"
 ENV KAFKA_URL="https://archive.apache.org/dist/kafka/${KAFKA_VERSION}/${KAFKA_RELEASE}.tgz"
